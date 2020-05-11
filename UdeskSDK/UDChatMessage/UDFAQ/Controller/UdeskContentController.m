@@ -18,7 +18,7 @@
     
     UILabel *_labelTitle;
     BOOL isLoadingFinished;
-    UIWebView *htmlWebView;
+    WKWebView *htmlWebView;
     NSString *_htmlContent;
 
 }
@@ -144,9 +144,9 @@
     @try {
         
         CGFloat webY = _labelTitle.frame.origin.y+_labelTitle.frame.size.height+5;
-        htmlWebView=[[UIWebView alloc] initWithFrame:CGRectMake(7, webY, UD_SCREEN_WIDTH-14, self.view.frame.size.height-webY)];
+        htmlWebView=[[WKWebView alloc] initWithFrame:CGRectMake(7, webY, UD_SCREEN_WIDTH-14, self.view.frame.size.height-webY)];
         htmlWebView.backgroundColor = [UIColor whiteColor];
-        htmlWebView.delegate = self;
+        htmlWebView.navigationDelegate = self;
         NSString *newBaseURL = [NSString stringWithFormat:@"http://%@",baseUrl];
         
         [htmlWebView loadHTMLString:htmlString baseURL:[NSURL URLWithString:newBaseURL]];
@@ -158,9 +158,7 @@
     }
 }
 
-#pragma mark - UIWebViewDelegate
-- (void)webViewDidFinishLoad:(UIWebView *)webView
-{
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     @try {
         
         for (UIView *_aView in [htmlWebView subviews])
@@ -187,17 +185,14 @@
     }
 }
 
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     
-    if (navigationType == UIWebViewNavigationTypeLinkClicked) {
-        
-        [[UIApplication sharedApplication] openURL:request.URL];
-        
-        return NO;
+    decisionHandler(WKNavigationActionPolicyAllow);
+    if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
+        [[UIApplication sharedApplication] openURL:navigationAction.request.URL];
     }
-    
-    return YES;
 }
+
 
 - (void)viewWillAppear:(BOOL)animated {
 
